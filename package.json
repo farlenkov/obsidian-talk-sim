@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-plugin-template",
+	"name": "obsidian-talk-sim",
 	"version": "1.0.0",
-	"description": "My template for Obsidian plugins with Svelte 5 and JS.",
+	"description": "Make LLMs talk to each other to discuss your topics.",
 	"main": "main.js",
 	"keywords": [],
 	"author": "",
