@@ -1,0 +1,23 @@
+{
+	"name": "obsidian-plugin-template",
+	"version": "1.0.0",
+	"description": "My template for Obsidian plugins with Svelte 5 and JS.",
+	"main": "main.js",
+	"keywords": [],
+	"author": "",
+	"license": "GPL-3.0",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "node esbuild.config.mjs production"
+	},
+	"devDependencies": {
+		"@types/node": "^24.2.1",
+		"builtin-modules": "5.0.0",
+		"esbuild": "0.25.9",
+		"esbuild-svelte": "^0.9.3",
+		"lucide-svelte": "^0.539.0",
+		"obsidian": "latest",
+		"showdown": "^2.1.0",
+		"svelte": "^5.38.1"
+	}
+}

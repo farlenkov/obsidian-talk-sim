@@ -1,0 +1,10 @@
+{
+  "id": "plugin-template",
+  "name": "Plugin template",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "My template for plugins with Svelte 5 and JS.",
+  "author": "Mike Farlenkov",
+  "authorUrl": "https://github.com/farlenkov",
+  "isDesktopOnly": true
+}
