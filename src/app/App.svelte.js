@@ -1,5 +1,5 @@
 import TalkState from '$lib/talk/Talk.svelte.js';
-import GenericModal from '$lib/svelte-obsidian/modal/GenericModal.js';
+import GenericModal from '$lib/svelte-obsidian/src/GenericModal.js';
 
 import settings from '$lib/svelte-llm/settings/Settings.svelte.js';
 import providers from '$lib/svelte-llm/models/ProviderInfo.svelte.js';

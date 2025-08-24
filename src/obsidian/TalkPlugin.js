@@ -1,9 +1,13 @@
 import { Plugin } from 'obsidian';
+import TalkView from './TalkView.js';
+import creteDefaultTalk from '$lib/talk/Talk.default.js';
+import settings from '$lib/svelte-llm/settings/Settings.svelte.js';
 
 export default class TalkPlugin extends Plugin 
 {
     async onload() 
     {
+        settings.Init(this);
         this.RegisterTalkView();
         this.RegisterMenuItem();
 
