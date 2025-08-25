@@ -1,10 +1,11 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, RefreshCcw } from 'lucide-svelte';
+    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import aiClient from '$lib/svelte-llm/models/AiClient.svelte.js';
     import PlayButton from './PlayButton.svelte';
+    import App from '$lib/app/App.svelte';
 
     const appState = getContext("appState");
     const TAB_PROMPTS = "prompts";
@@ -72,6 +73,24 @@
         inProgress = false;
     }
 
+    function switchVariation(message, change)
+    {
+        let messagesByParent = appState.talk.messages[message.parentId];
+        let currentVariation = appState.talk.VariantNum[message.id] - 1;
+        let newVariation = currentVariation + change;
+
+        if (newVariation < 0)
+            newVariation = messagesByParent.length - 1;
+        else if (newVariation >= messagesByParent.length)
+            newVariation = 0;
+
+        for (var i = 0; i < messagesByParent.length; i++)
+            messagesByParent[i].isActive = (i == newVariation);
+        
+        appState.talk.OnChange();
+        currentThread = appState.talk.GetThread();
+    }
+
 </script>
 
 <div class="main-menu">
@@ -79,6 +98,8 @@
         class="tappable"
         class:is-active={mainTab == TAB_PROMPTS}
         onclick={() => mainTab = TAB_PROMPTS}>
+
+        <SquarePen size={16} />
         Prompts
     </div>
 
@@ -88,7 +109,9 @@
             class="tappable"
             class:is-active={mainTab == TAB_SESSIONS}
             onclick={() => mainTab = TAB_SESSIONS}>
-            Sessions
+
+            <MessagesSquare size={16} />
+            Messages
         </div>
 
     {:else}
@@ -151,6 +174,30 @@
                             {i % 2 === 0 ? "Model 1" : "Model 2"}
                         </div>
                         <div class="talk-message-buttons">
+
+                            {#if appState.talk.messages[message.parentId].length > 1}
+                            <div class="talk-message-variants">
+
+                                <button 
+                                    class="clickable-icon"
+                                    aria-label="Prev variation"
+                                    onclick={() => switchVariation(message, -1)}>
+                                    <ChevronLeft size={16}/>
+                                </button>
+
+                                {appState.talk.VariantNum[message.id]}
+                                / 
+                                {appState.talk.messages[message.parentId].length}
+
+                                <button 
+                                    class="clickable-icon"
+                                    aria-label="Next variation"
+                                    onclick={() => switchVariation(message, 1)}>
+                                    <ChevronRight size={16}/>
+                                </button>
+
+                            </div>
+                            {/if}
 
                             <PlayButton
                                 inProgress={inProgress}

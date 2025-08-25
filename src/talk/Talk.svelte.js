@@ -1,5 +1,7 @@
 export default class TalkState
 {
+    VariantNum = {};
+
     constructor(file)
     {
         this.sharedPrompt = $state("");
@@ -41,6 +43,7 @@ export default class TalkState
 
                 if (message.isActive)
                 {
+                    this.VariantNum[message.id] = i + 1;
                     thread.push(message);
                     parentId = message.id;
                     break;
