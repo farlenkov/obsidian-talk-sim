@@ -26,16 +26,15 @@
         const messages = [];
         const isFirstModel = appState.talk.messages.length % 2 === 0;
 
-        messages.push({ role : "user", content : [appState.talk.sharedPrompt]});
+        const systemPrompt = isFirstModel
+            ? `${appState.talk.sharedPrompt}\n\n${appState.talk.modelPrompt1}`
+            : `${appState.talk.sharedPrompt}\n\n${appState.talk.modelPrompt2}`;
 
-        if (isFirstModel)
-            messages.push({ role : "user", content : [appState.talk.modelPrompt1]});
-        else
-            messages.push({ role : "user", content : [appState.talk.modelPrompt2]});
+        messages.push({ role : "user", content : [systemPrompt]});
 
         for (var i = 0; i < appState.talk.messages.length; i++)
         {
-            const role = isFirstModel && i % 2 === 0 ? "model" : "user";
+            const role = isFirstModel ? (i % 2 === 0 ? "model" : "user") : (i % 2 === 0 ? "user" : "model");
             messages.push({ role : role, content : [appState.talk.messages[i]]});
         }
 
@@ -170,6 +169,8 @@
     .talk-sessions
     {
         padding: 1em;
+        height: 95%;
+        overflow:auto;
 
         .talk-messages
         {
