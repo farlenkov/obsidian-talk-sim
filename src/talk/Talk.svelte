@@ -1,9 +1,10 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, Loader } from 'lucide-svelte';
+    import { Play, RefreshCcw } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import aiClient from '$lib/svelte-llm/models/AiClient.svelte.js';
+    import PlayButton from './PlayButton.svelte';
 
     const appState = getContext("appState");
     const TAB_PROMPTS = "prompts";
@@ -11,41 +12,63 @@
 
     let mainTab = $state(TAB_PROMPTS);
     let inProgress = $state(false);
-    
+    let currentThread = $state(appState.talk.GetThread());
+    let hasMessages = $derived(currentThread.length > 0);
+
+    let hasPrompts = $derived(
+        appState.talk.sharedPrompt.trim() &&
+        appState.talk.modelPrompt1.trim() &&
+        appState.talk.modelPrompt2.trim());
+
     function onChange ()
     {
         appState.talk.OnChange();
     }
 
-    async function clickGenerate()
+    async function clickGenerate(replaceMessage)
     {
         if (mainTab != TAB_SESSIONS)
             mainTab = TAB_SESSIONS;
 
         inProgress = true;
-        const messages = [];
-        const isFirstModel = appState.talk.messages.length % 2 === 0;
+
+        const lastParentId = replaceMessage ? replaceMessage.parentId : "";
+        const tempThread = appState.talk.GetThread(lastParentId);
+        console.log("tempThread", tempThread);
+
+        const isFirstModel = tempThread.length % 2 === 0;
 
         const systemPrompt = isFirstModel
             ? `${appState.talk.sharedPrompt}\n\n${appState.talk.modelPrompt1}`
             : `${appState.talk.sharedPrompt}\n\n${appState.talk.modelPrompt2}`;
 
+        const messages = []
         messages.push({ role : "user", content : [systemPrompt]});
 
-        for (var i = 0; i < appState.talk.messages.length; i++)
+        for (var i = 0; i < tempThread.length; i++)
         {
-            const role = isFirstModel ? (i % 2 === 0 ? "model" : "user") : (i % 2 === 0 ? "user" : "model");
-            messages.push({ role : role, content : [appState.talk.messages[i]]});
+            const role = isFirstModel 
+                ? (i % 2 === 0 ? "model" : "user") 
+                : (i % 2 === 0 ? "user" : "model");
+
+            messages.push({ role : role, content : [tempThread[i].text[0]]});
         }
 
         const { markdowns } = await aiClient.Call("google", "gemini-2.0-flash", messages);
+        
+        const newMessage = 
+        {  
+            id : (new Date).getTime().toString(),
+            text : markdowns,
+            provider : "google",
+            model : "gemini-2.0-flash",
+            role : isFirstModel ? 0 : 1,
+            parentId : tempThread.length == 0 ? "" : tempThread[tempThread.length-1].id,
+            isActive : true
+        }
 
-        if (markdowns.length == 1)
-            appState.talk.messages = [...appState.talk.messages, markdowns[0]]
-        else
-            appState.talk.messages = [...appState.talk.messages, markdowns[1]]
-
-        appState.talk.OnChange();
+        appState.talk.AddMessage(newMessage);
+        currentThread = appState.talk.GetThread();
         inProgress = false;
     }
 
@@ -58,41 +81,58 @@
         onclick={() => mainTab = TAB_PROMPTS}>
         Prompts
     </div>
-    <div 
-        class="tappable"
-        class:is-active={mainTab == TAB_SESSIONS}
-        onclick={() => mainTab = TAB_SESSIONS}>
-        Sessions
-    </div>
-    {#if !inProgress}
-        <button class="mod-cta" aria-label="Call LLM" onclick={clickGenerate}>
-            <Play size={16}/>  
-        </button>
+
+    {#if hasMessages}
+
+        <div 
+            class="tappable"
+            class:is-active={mainTab == TAB_SESSIONS}
+            onclick={() => mainTab = TAB_SESSIONS}>
+            Sessions
+        </div>
+
     {:else}
-        <button class="mod-cta" aria-label="In progress..." disabled>
-            <Loader size={16} class="rotate"/> 
-        </button>
+
+        <div class="talk-start">
+            {#if hasPrompts}
+                <PlayButton
+                    inProgress={inProgress}
+                    label1="Generate" 
+                    label2="Generating..." 
+                    label3="START"
+                    label4="GENERATING..."
+                    className="mod-cta",
+                    onclick={clickGenerate}
+                    Icon={Play} />
+            {:else}
+                <div class="warning">
+                    Please, fill all prompts to continue.
+                </div>
+            {/if}
+        </div>
+
     {/if}
+
 </div>
 
 {#if mainTab == TAB_PROMPTS}
-    <div class="prompts">
-        <div class="common-prompt">
-            <h4>Shared System Prompt</h4>
+    <div class="talk-prompts">
+        <div class="prompt-shared">
+            <h4>Shared <dim>System Prompt</dim></h4>
             <textarea 
                 bind:value={appState.talk.sharedPrompt}
                 onchange={onChange}>
             </textarea>
         </div>
-        <div class="model1-prompt">
-            <h4>System Prompt for Model #1</h4>
+        <div class="prompt-model1">
+            <h4>Model #1 <dim>Role Prompt</dim></h4>
             <textarea 
                 bind:value={appState.talk.modelPrompt1}
                 onchange={onChange}>
             </textarea>
         </div>
-        <div class="model2-prompt">
-            <h4>System Prompt for Model #2</h4>
+        <div class="prompt-model2">
+            <h4>Model #2 <dim>Role Prompt</dim></h4>
             <textarea 
                 bind:value={appState.talk.modelPrompt2}
                 onchange={onChange}>
@@ -102,95 +142,52 @@
 {/if}
 
 {#if mainTab == TAB_SESSIONS}
-    <div class="talk-sessions">
-        <div class="talk-messages">
-            {#each appState.talk.messages as message, i}
+    <div class="talk-messages">
+        <div class="talk-message-list">
+            {#each currentThread as message, i}
                 <div class="talk-message">
-                    <h6 class="talk-message-role">{i % 2 === 0 ? "Model 1" : "Model 2"}</h6>
-                    {@html mdToHtml(message)}
+                    <div class="talk-message-head">
+                        <div class="talk-message-role">
+                            {i % 2 === 0 ? "Model 1" : "Model 2"}
+                        </div>
+                        <div class="talk-message-buttons">
+
+                            <PlayButton
+                                inProgress={inProgress}
+                                label1="Regenarate" 
+                                label2="Generating..." 
+                                className="clickable-icon",
+                                onclick={() => clickGenerate(message)}
+                                Icon={RefreshCcw} />
+
+                        </div>
+                    </div>
+                    <div class="talk-message-body">                        
+                        {@html mdToHtml(message.text[0])}
+                    </div>
                 </div>
             {/each}
+
+            <div class="talk-message-next">
+
+                {#if hasMessages}
+                    <PlayButton
+                        inProgress={inProgress}
+                        label1="Generate" 
+                        label2="Generating..." 
+                        label3="CONTINUE"
+                        label4="GENERATING..."
+                        className="mod-cta",
+                        onclick={clickGenerate}
+                        Icon={Play} />
+                {/if}
+
+            </div>
         </div>
     </div>
 {/if}
 
 <style>
 
-    .main-menu
-    {
-        display: flex;
-        margin: 0 1em;
-        
-        background-color: var(--background-secondary);
-        border-bottom: 1px solid var(--divider-color);
-        /* border-radius: var(--radius-s); */
-
-        .tappable
-        {
-            padding: 0.5em 1em;
-            /* border-radius: var(--radius-s); */
-        }
-
-        .tappable:hover,
-        .tappable.is-active
-        {
-            background-color: var(--background-modifier-hover);
-        }
-    }
-
-    .prompts
-    {
-        display: flex;
-        gap: 1em; 
-        padding: 1em;
-        height: 90%;
-
-        h4 
-        { 
-            margin-top: 0.1em; 
-            margin-bottom: 0.01em; 
-        }        
-    }
-
-    .common-prompt,
-    .model1-prompt,
-    .model2-prompt
-    {
-        flex: 1;
-
-        textarea
-        {
-            width: 100%;
-            height: 100%;
-            resize: none;
-        }
-    }
-
-    .talk-sessions
-    {
-        padding: 1em;
-        height: 95%;
-        overflow:auto;
-
-        .talk-messages
-        {
-            display: flex;
-            flex-direction: column;
-            gap: 1em;
-
-            .talk-message
-            {
-                background-color: var(--background-secondary);
-                border: 1px solid var(--divider-color);
-                border-radius: var(--radius-s);
-                padding: 0 1em;
-
-                .talk-message-role
-                {
-                    opacity: 0.5;
-                }
-            }
-        }
-    }
-
+    
 </style>
