@@ -1,3 +1,5 @@
+@import url(./animate.css);
+
 .talk-sim.view-content
 {
     display: flex;
@@ -17,10 +19,26 @@
     .main-menu
     {
         display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         position: relative;
         
         background-color: var(--background-secondary);
         border-bottom: 2px solid var(--divider-color);
+
+        .main-menu-left,
+        .main-menu-right
+        {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .main-menu-right
+        {
+            padding: 0 0.5em;
+        }
 
         .tappable
         {

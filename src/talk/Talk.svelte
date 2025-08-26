@@ -1,15 +1,14 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare } from 'lucide-svelte';
+    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, AudioLines } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
-    import aiClient from '$lib/svelte-llm/models/AiClient.svelte.js';
     import PlayButton from './PlayButton.svelte';
-    import App from '$lib/app/App.svelte';
+    import aiClient from '$lib/svelte-llm/models/AiClient.svelte';
 
     const appState = getContext("appState");
     const TAB_PROMPTS = "prompts";
-    const TAB_SESSIONS = "sessions";
+    const TAB_MESSAGES = "messages";
 
     let mainTab = $state(TAB_PROMPTS);
     let inProgress = $state(false);
@@ -28,52 +27,18 @@
 
     async function clickGenerate(replaceMessage)
     {
-        if (mainTab != TAB_SESSIONS)
-            mainTab = TAB_SESSIONS;
+        if (mainTab != TAB_MESSAGES)
+            mainTab = TAB_MESSAGES;
 
         inProgress = true;
 
-        const lastParentId = replaceMessage ? replaceMessage.parentId : "";
-        const tempThread = appState.talk.GetThread(lastParentId);
-        console.log("tempThread", tempThread);
-
-        const isFirstModel = tempThread.length % 2 === 0;
-
-        const systemPrompt = isFirstModel
-            ? `${appState.talk.sharedPrompt}\n\n${appState.talk.modelPrompt1}`
-            : `${appState.talk.sharedPrompt}\n\n${appState.talk.modelPrompt2}`;
-
-        const messages = []
-        messages.push({ role : "user", content : [systemPrompt]});
-
-        for (var i = 0; i < tempThread.length; i++)
-        {
-            const role = isFirstModel 
-                ? (i % 2 === 0 ? "model" : "user") 
-                : (i % 2 === 0 ? "user" : "model");
-
-            messages.push({ role : role, content : [tempThread[i].text[0]]});
-        }
-
-        const { markdowns } = await aiClient.Call("google", "gemini-2.0-flash", messages);
-        
-        const newMessage = 
-        {  
-            id : (new Date).getTime().toString(),
-            text : markdowns,
-            provider : "google",
-            model : "gemini-2.0-flash",
-            role : isFirstModel ? 0 : 1,
-            parentId : tempThread.length == 0 ? "" : tempThread[tempThread.length-1].id,
-            isActive : true
-        }
-
-        appState.talk.AddMessage(newMessage);
+        await appState.talk.Generate(replaceMessage);
         currentThread = appState.talk.GetThread();
+
         inProgress = false;
     }
 
-    function switchVariation(message, change)
+    function clickVariation(message, change)
     {
         let messagesByParent = appState.talk.messages[message.parentId];
         let currentVariation = appState.talk.VariantNum[message.id] - 1;
@@ -91,50 +56,101 @@
         currentThread = appState.talk.GetThread();
     }
 
+    function clickCopy(message)
+    {
+        if (message)
+        {
+            if (navigator.clipboard)
+                navigator.clipboard.writeText(message.text[0]);
+        }
+        else
+        {
+            let threadText = "Read aloud in a warm, welcoming tone\n\n";
+
+            for (var i = 0; i < currentThread.length; i++)
+                threadText += `${i % 2 === 0 ? "Speaker 1:" : "Speaker 2:"} ${currentThread[i].text[0]}\n\n`;
+
+            if (navigator.clipboard)
+                navigator.clipboard.writeText(threadText);
+        }
+    }
+    
+    async function clickSpeak(message)
+    {
+        if (!message)
+            return;
+
+        appState.talk.SpeakStart(message.id);
+
+        const PROVIDER = "google";
+        const MODEL = "gemini-2.5-flash-preview-tts";
+        const voices = aiClient.GetVoices(PROVIDER);
+        const voice = voices[Math.floor(Math.random() * voices.length)];
+
+        await aiClient.Speak(PROVIDER, MODEL, voice, message.text[0]);
+        appState.talk.SpeakStop(message.id);
+    }
+
 </script>
 
 <div class="main-menu">
-    <div 
-        class="tappable"
-        class:is-active={mainTab == TAB_PROMPTS}
-        onclick={() => mainTab = TAB_PROMPTS}>
-
-        <SquarePen size={16} />
-        Prompts
-    </div>
-
-    {#if hasMessages}
-
+    
+    <div class="main-menu-left">
         <div 
             class="tappable"
-            class:is-active={mainTab == TAB_SESSIONS}
-            onclick={() => mainTab = TAB_SESSIONS}>
+            class:is-active={mainTab == TAB_PROMPTS}
+            onclick={() => mainTab = TAB_PROMPTS}>
 
-            <MessagesSquare size={16} />
-            Messages
+            <SquarePen size={16} />
+            Prompts
         </div>
 
-    {:else}
+        {#if hasMessages}
 
-        <div class="talk-start">
-            {#if hasPrompts}
-                <PlayButton
-                    inProgress={inProgress}
-                    label1="Generate" 
-                    label2="Generating..." 
-                    label3="START"
-                    label4="GENERATING..."
-                    className="mod-cta",
-                    onclick={clickGenerate}
-                    Icon={Play} />
-            {:else}
-                <div class="warning">
-                    Please, fill all prompts to continue.
-                </div>
-            {/if}
-        </div>
+            <div 
+                class="tappable"
+                class:is-active={mainTab == TAB_MESSAGES}
+                onclick={() => mainTab = TAB_MESSAGES}>
 
-    {/if}
+                <MessagesSquare size={16} />
+                Messages
+            </div>
+
+        {:else}
+
+            <div class="talk-start">
+                {#if hasPrompts}
+                    <PlayButton
+                        inProgress={inProgress}
+                        label1="Generate" 
+                        label2="Generating..." 
+                        label3="START"
+                        label4="GENERATING..."
+                        className="mod-cta",
+                        onclick={clickGenerate}
+                        Icon={Play} />
+                {:else}
+                    <div class="warning">
+                        Please, fill all prompts to continue.
+                    </div>
+                {/if}
+            </div>
+
+        {/if}
+    </div>
+
+    <div class="main-menu-right">
+
+        {#if mainTab == TAB_MESSAGES}
+            <button 
+                class="clickable-icon"
+                aria-label="Copy all messages"
+                onclick={() => clickCopy()}>
+                <Copy size={16}/>
+            </button>
+        {/if}
+
+    </div>
 
 </div>
 
@@ -164,7 +180,7 @@
     </div>
 {/if}
 
-{#if mainTab == TAB_SESSIONS}
+{#if mainTab == TAB_MESSAGES}
     <div class="talk-messages">
         <div class="talk-message-list">
             {#each currentThread as message, i}
@@ -176,28 +192,43 @@
                         <div class="talk-message-buttons">
 
                             {#if appState.talk.messages[message.parentId].length > 1}
-                            <div class="talk-message-variants">
+                                <div class="talk-message-variants">
 
-                                <button 
-                                    class="clickable-icon"
-                                    aria-label="Prev variation"
-                                    onclick={() => switchVariation(message, -1)}>
-                                    <ChevronLeft size={16}/>
-                                </button>
+                                    <button 
+                                        class="clickable-icon"
+                                        aria-label="Prev variation"
+                                        onclick={() => clickVariation(message, -1)}>
+                                        <ChevronLeft size={16}/>
+                                    </button>
 
-                                {appState.talk.VariantNum[message.id]}
-                                / 
-                                {appState.talk.messages[message.parentId].length}
+                                    {appState.talk.VariantNum[message.id]}
+                                    / 
+                                    {appState.talk.messages[message.parentId].length}
 
-                                <button 
-                                    class="clickable-icon"
-                                    aria-label="Next variation"
-                                    onclick={() => switchVariation(message, 1)}>
-                                    <ChevronRight size={16}/>
-                                </button>
+                                    <button 
+                                        class="clickable-icon"
+                                        aria-label="Next variation"
+                                        onclick={() => clickVariation(message, 1)}>
+                                        <ChevronRight size={16}/>
+                                    </button>
 
-                            </div>
+                                </div>
                             {/if}
+
+                            <PlayButton
+                                inProgress={appState.talk.IsSpeaking[message.id]}
+                                label1="Speak" 
+                                label2="Speaking..." 
+                                className="clickable-icon",
+                                onclick={() => clickSpeak(message)}
+                                Icon={AudioLines} />
+
+                            <button 
+                                class="clickable-icon"
+                                aria-label="Copy message"
+                                onclick={() => clickCopy(message)}>
+                                <Copy size={16}/>
+                            </button>
 
                             <PlayButton
                                 inProgress={inProgress}

@@ -1,0 +1,26 @@
+.talk-sim
+{
+    .rotate
+    {
+        animation: rotate-talk-sim 3s infinite linear;
+    }
+
+    .blink
+    {
+        animation: blink-talk-sim 1s infinite linear;
+    }
+}
+
+@keyframes rotate-talk-sim
+{
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes blink-talk-sim
+{
+    0% { opacity: 100%; }
+    50% { opacity: 50%; }
+    100% { opacity: 100%; }
+}

@@ -1,3 +1,5 @@
+import aiClient from '$lib/svelte-llm/models/AiClient.svelte.js';
+
 export default class TalkState
 {
     VariantNum = {};
@@ -8,6 +10,9 @@ export default class TalkState
         this.modelPrompt1 = $state("");
         this.modelPrompt2 = $state("");
         this.messages = $state({});
+
+        this.IsSpeaking = $state({});
+
         this.OnChange = () => {};
     }
 
@@ -57,6 +62,51 @@ export default class TalkState
         return thread;
     }
 
+    async Generate(replaceMessage)
+    {
+        const PROVIDER = "google";
+        const MODEL = "gemini-2.5-flash";
+
+        const lastParentId = replaceMessage ? replaceMessage.parentId : "";
+        const tempThread = this.GetThread(lastParentId);
+        const isFirstModel = tempThread.length % 2 === 0;
+
+        const systemPrompt = isFirstModel
+            ? `${this.sharedPrompt}\n\n${this.modelPrompt1}`
+            : `${this.sharedPrompt}\n\n${this.modelPrompt2}`;
+
+        const messages = []
+        messages.push({ role : "user", content : [systemPrompt]});
+
+        for (var i = 0; i < tempThread.length; i++)
+        {
+            const role = isFirstModel 
+                ? (i % 2 === 0 ? "model" : "user") 
+                : (i % 2 === 0 ? "user" : "model");
+
+            messages.push
+            ({ 
+                role : role, 
+                content : [tempThread[i].text[0]]
+            });
+        }
+
+        const { markdowns } = await aiClient.Call(PROVIDER, MODEL, messages);
+        
+        const newMessage = 
+        {  
+            id : (new Date).getTime().toString(),
+            text : markdowns.length == 1 ? [markdowns[0]] : [markdowns[1]],
+            provider : PROVIDER,
+            model : MODEL,
+            role : isFirstModel ? 0 : 1,
+            parentId : tempThread.length == 0 ? "" : tempThread[tempThread.length-1].id,
+            isActive : true
+        }
+
+        this.AddMessage(newMessage);
+    }
+
     AddMessage(newMessage)
     {
         const messagesByParent = this.messages[newMessage.parentId];
@@ -75,6 +125,20 @@ export default class TalkState
         }
         
         this.OnChange();
+    }
+
+    SpeakStart(messageId)
+    {
+        const isSpeaking = this.IsSpeaking;
+        isSpeaking[messageId] = true;
+        this.IsSpeaking = isSpeaking;
+    }
+
+    SpeakStop(messageId)
+    {
+        const isSpeaking = this.IsSpeaking;
+        delete isSpeaking[messageId];
+        this.IsSpeaking = isSpeaking;
     }
 
     ToString ()
