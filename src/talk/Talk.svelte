@@ -1,10 +1,9 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, AudioLines } from 'lucide-svelte';
+    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, AudioLines, Settings } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import PlayButton from './PlayButton.svelte';
-    import aiClient from '$lib/svelte-llm/models/AiClient.svelte';
     
     const TAB_PROMPTS = "prompts";
     const TAB_MESSAGES = "messages";
@@ -33,6 +32,12 @@
 
     async function clickGenerate(replaceMessage)
     {
+        if (!appState.settings.Data.googleKey)
+        {
+            appState.showSettings();
+            return;
+        }
+
         if (mainTab != TAB_MESSAGES)
             mainTab = TAB_MESSAGES;
 
@@ -158,7 +163,15 @@
             aria-label="Copy all messages"
             onclick={() => clickCopy()}>
             <Copy size={16}/>
-        </button>        
+        </button>
+        
+        <button 
+            type="button" 
+            class="clickable-icon" 
+            aria-label="Open node params" 
+            onclick={() => appState.showSettings()}>
+            <Settings size={16}/> 
+        </button>
 
     </div>
 

@@ -5,7 +5,9 @@ import VoicePlayer from '$lib/processor/VoicePlayer.svelte.js';
 
 import GenericModal from '$lib/svelte-obsidian/src/GenericModal.js';
 
+import SettingsView from '$lib/svelte-llm/settings/Settings.svelte';
 import settings from '$lib/svelte-llm/settings/Settings.svelte.js';
+
 import providers from '$lib/svelte-llm/models/ProviderInfo.svelte.js';
 import models from '$lib/svelte-llm/models/ModelInfo.svelte.js';
 
@@ -27,9 +29,8 @@ export default class AppState
         this.voicePlayer = new VoicePlayer();
     }
 
-    ShowSettings()
+    showSettings()
     {
-        new GenericModal(appState, SettingsView, ["talk-sim", "talk-sim-settings"]).open();
-        this.settings.Show(this);
+        new GenericModal(this, SettingsView, ["talk-sim", "talk-sim-settings"]).open();
     }
 }

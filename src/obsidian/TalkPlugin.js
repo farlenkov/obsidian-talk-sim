@@ -7,9 +7,9 @@ export default class TalkPlugin extends Plugin
 {
     async onload() 
     {
-        settings.Init(this);
-        this.RegisterTalkView();
-        this.RegisterMenuItem();
+        this.initSettings();
+        this.registerTalkView();
+        this.registerMenuItem();
 
         this.addRibbonIcon(
             'messages-square', 
@@ -22,7 +22,23 @@ export default class TalkPlugin extends Plugin
         
     }
 
-    async RegisterTalkView()
+    async initSettings()
+    {
+        await settings.Init(this);
+
+        settings.Data.googleModels = 
+        [{
+            "id": "gemini-2.5-flash",
+            "name": "Gemini 2.5 Flash",
+            "desc": "Stable version of Gemini 2.5 Flash, our mid-size multimodal model that supports up to 1 million tokens, released in June of 2025.",
+            "owner": "Google",
+            "context": 1048576,
+            "prompt": -1,
+            "completion": -1
+        }];
+    }
+
+    async registerTalkView()
     {
         this.registerExtensions(
             ['talk-sim'], 
@@ -33,7 +49,7 @@ export default class TalkPlugin extends Plugin
             (leaf) => new TalkView(leaf, this));
     }
 
-    async RegisterMenuItem()
+    async registerMenuItem()
     {
         const fileMenuEvent = this.app.workspace.on(
             'file-menu', 

@@ -14,7 +14,7 @@ export default class VoiceGenerator extends Processor
         const MODEL = "gemini-2.5-flash-preview-tts";
         const voices = aiClient.GetVoices(PROVIDER);
         const voice = voices[Math.floor(Math.random() * voices.length)];
-        console.log("voice", voice); // Schedar Sulafat
+        console.log("voice", voice); // Schedar Sulafat Fenrir Callirrhoe
 
         const audioClip = await aiClient.Speak(PROVIDER, MODEL, voice, message.text[0]);
         
