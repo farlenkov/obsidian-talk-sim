@@ -23,7 +23,7 @@ export default class TalkView extends TextFileView
     async setViewData (fileContents, clear)
     {
         const talkJson = JSON.parse(fileContents);
-        await this.appState.talk.LoadFromFile(talkJson);
+        await this.appState.talk.loadFromFile(talkJson);
 
         if (this.talkView)
         {
@@ -44,7 +44,7 @@ export default class TalkView extends TextFileView
 
     getViewData ()
     {
-        return this.appState.talk.ToString();
+        return this.appState.talk.toString();
     }
 
     clear ()

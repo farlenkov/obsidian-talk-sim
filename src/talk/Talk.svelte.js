@@ -11,12 +11,12 @@ export default class TalkState
         this.modelPrompt2 = $state("");
         this.messages = $state({});
 
-        this.IsSpeaking = $state({});
+        // this.IsSpeaking = $state({});
 
         this.OnChange = () => {};
     }
 
-    async LoadFromFile(json)
+    async loadFromFile(json)
     {
         if (typeof json === 'string')
             json = JSON.parse(json);
@@ -27,7 +27,27 @@ export default class TalkState
         this.messages = json.messages || {};
     }
 
-    GetThread(lastParentId)
+    hasMessages(parentId)
+    {
+        const messagesByParent = this.messages[parentId || ""];
+
+        if (!messagesByParent)
+            return false;
+        else
+            return messagesByParent.length > 0;
+    }
+
+    hasVariations(parentId)
+    {
+        const messagesByParent = this.messages[parentId || ""];
+
+        if (!messagesByParent)
+            return false;
+        else
+            return messagesByParent.length > 1;
+    }
+
+    getThread(lastParentId)
     {
         let parentId = "";
         const thread = [];
@@ -62,52 +82,7 @@ export default class TalkState
         return thread;
     }
 
-    async Generate(replaceMessage)
-    {
-        const PROVIDER = "google";
-        const MODEL = "gemini-2.5-flash";
-
-        const lastParentId = replaceMessage ? replaceMessage.parentId : "";
-        const tempThread = this.GetThread(lastParentId);
-        const isFirstModel = tempThread.length % 2 === 0;
-
-        const systemPrompt = isFirstModel
-            ? `${this.sharedPrompt}\n\n${this.modelPrompt1}`
-            : `${this.sharedPrompt}\n\n${this.modelPrompt2}`;
-
-        const messages = []
-        messages.push({ role : "user", content : [systemPrompt]});
-
-        for (var i = 0; i < tempThread.length; i++)
-        {
-            const role = isFirstModel 
-                ? (i % 2 === 0 ? "model" : "user") 
-                : (i % 2 === 0 ? "user" : "model");
-
-            messages.push
-            ({ 
-                role : role, 
-                content : [tempThread[i].text[0]]
-            });
-        }
-
-        const { markdowns } = await aiClient.Call(PROVIDER, MODEL, messages);
-        
-        const newMessage = 
-        {  
-            id : (new Date).getTime().toString(),
-            text : markdowns.length == 1 ? [markdowns[0]] : [markdowns[1]],
-            provider : PROVIDER,
-            model : MODEL,
-            role : isFirstModel ? 0 : 1,
-            parentId : tempThread.length == 0 ? "" : tempThread[tempThread.length-1].id,
-            isActive : true
-        }
-
-        this.AddMessage(newMessage);
-    }
-
-    AddMessage(newMessage)
+    addMessage(newMessage)
     {
         const messagesByParent = this.messages[newMessage.parentId];
 
@@ -127,21 +102,7 @@ export default class TalkState
         this.OnChange();
     }
 
-    SpeakStart(messageId)
-    {
-        const isSpeaking = this.IsSpeaking;
-        isSpeaking[messageId] = true;
-        this.IsSpeaking = isSpeaking;
-    }
-
-    SpeakStop(messageId)
-    {
-        const isSpeaking = this.IsSpeaking;
-        delete isSpeaking[messageId];
-        this.IsSpeaking = isSpeaking;
-    }
-
-    ToString ()
+    toString ()
     {
         const data = 
         {

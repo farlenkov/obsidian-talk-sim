@@ -1,4 +1,8 @@
 import TalkState from '$lib/talk/Talk.svelte.js';
+import TextGenerator from '$lib/processor/TextGenerator.svelte.js';
+import VoiceGenerator from '$lib/processor/VoiceGenerator.svelte.js';
+import VoicePlayer from '$lib/processor/VoicePlayer.svelte.js';
+
 import GenericModal from '$lib/svelte-obsidian/src/GenericModal.js';
 
 import settings from '$lib/svelte-llm/settings/Settings.svelte.js';
@@ -18,6 +22,9 @@ export default class AppState
         // LOCAL
 
         this.talk = new TalkState();
+        this.textGenerator = new TextGenerator();
+        this.voiceGenerator = new VoiceGenerator();
+        this.voicePlayer = new VoicePlayer();
     }
 
     ShowSettings()

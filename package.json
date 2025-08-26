@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-talk-sim",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"description": "Make LLMs talk to each other to discuss your topics.",
 	"main": "main.js",
 	"keywords": [],

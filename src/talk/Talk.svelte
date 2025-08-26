@@ -5,15 +5,21 @@
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import PlayButton from './PlayButton.svelte';
     import aiClient from '$lib/svelte-llm/models/AiClient.svelte';
-
-    const appState = getContext("appState");
+    
     const TAB_PROMPTS = "prompts";
     const TAB_MESSAGES = "messages";
 
+    const appState = getContext("appState");
+
+    let enableAutoplay = $state(false);
     let mainTab = $state(TAB_PROMPTS);
-    let inProgress = $state(false);
-    let currentThread = $state(appState.talk.GetThread());
+    let currentThread = $state(appState.talk.getThread());
     let hasMessages = $derived(currentThread.length > 0);
+    
+    let inProgress = $derived(
+        appState.textGenerator.inProgress ||
+        appState.voiceGenerator.inProgress ||
+        appState.voicePlayer.inProgress);
 
     let hasPrompts = $derived(
         appState.talk.sharedPrompt.trim() &&
@@ -30,12 +36,20 @@
         if (mainTab != TAB_MESSAGES)
             mainTab = TAB_MESSAGES;
 
-        inProgress = true;
+        let newMessage = await appState.textGenerator.generateMessage(appState.talk, replaceMessage);
+        currentThread = appState.talk.getThread();
 
-        await appState.talk.Generate(replaceMessage);
-        currentThread = appState.talk.GetThread();
+        while (enableAutoplay)
+        {
+            const audioClip = await appState.voiceGenerator.generateVoice(newMessage);
+            appState.voicePlayer.playVoice(audioClip);
 
-        inProgress = false;
+            if (enableAutoplay)
+            {
+                newMessage = await appState.textGenerator.generateMessage(appState.talk);
+                currentThread = appState.talk.getThread();
+            }
+        }
     }
 
     function clickVariation(message, change)
@@ -53,7 +67,7 @@
             messagesByParent[i].isActive = (i == newVariation);
         
         appState.talk.OnChange();
-        currentThread = appState.talk.GetThread();
+        currentThread = appState.talk.getThread();
     }
 
     function clickCopy(message)
@@ -77,18 +91,8 @@
     
     async function clickSpeak(message)
     {
-        if (!message)
-            return;
-
-        appState.talk.SpeakStart(message.id);
-
-        const PROVIDER = "google";
-        const MODEL = "gemini-2.5-flash-preview-tts";
-        const voices = aiClient.GetVoices(PROVIDER);
-        const voice = voices[Math.floor(Math.random() * voices.length)];
-
-        await aiClient.Speak(PROVIDER, MODEL, voice, message.text[0]);
-        appState.talk.SpeakStop(message.id);
+        const audioClip = await appState.voiceGenerator.generateVoice(message);
+        appState.voicePlayer.playVoice(audioClip);
     }
 
 </script>
@@ -141,14 +145,20 @@
 
     <div class="main-menu-right">
 
-        {#if mainTab == TAB_MESSAGES}
-            <button 
-                class="clickable-icon"
-                aria-label="Copy all messages"
-                onclick={() => clickCopy()}>
-                <Copy size={16}/>
-            </button>
-        {/if}
+        <label 
+            class="talk-autoplay"
+            aria-label="Enable autoplay this conversation">
+            <input 
+                type="checkbox"
+                bind:checked={enableAutoplay}> Autoplay
+        </label>
+
+        <button 
+            class="clickable-icon"
+            aria-label="Copy all messages"
+            onclick={() => clickCopy()}>
+            <Copy size={16}/>
+        </button>        
 
     </div>
 
@@ -191,7 +201,7 @@
                         </div>
                         <div class="talk-message-buttons">
 
-                            {#if appState.talk.messages[message.parentId].length > 1}
+                            {#if appState.talk.hasVariations(message.parentId)}
                                 <div class="talk-message-variants">
 
                                     <button 
@@ -215,20 +225,20 @@
                                 </div>
                             {/if}
 
-                            <PlayButton
-                                inProgress={appState.talk.IsSpeaking[message.id]}
-                                label1="Speak" 
-                                label2="Speaking..." 
-                                className="clickable-icon",
-                                onclick={() => clickSpeak(message)}
-                                Icon={AudioLines} />
-
                             <button 
                                 class="clickable-icon"
                                 aria-label="Copy message"
                                 onclick={() => clickCopy(message)}>
                                 <Copy size={16}/>
                             </button>
+
+                            <PlayButton
+                                inProgress={inProgress}
+                                label1="Speak" 
+                                label2="Speaking..." 
+                                className="clickable-icon",
+                                onclick={() => clickSpeak(message)}
+                                Icon={AudioLines} />
 
                             <PlayButton
                                 inProgress={inProgress}

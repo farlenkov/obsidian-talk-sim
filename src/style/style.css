@@ -22,7 +22,6 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        position: relative;
         
         background-color: var(--background-secondary);
         border-bottom: 2px solid var(--divider-color);
@@ -38,6 +37,15 @@
         .main-menu-right
         {
             padding: 0 0.5em;
+
+            .talk-autoplay
+            {
+                margin-right: 0.75em;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
         }
 
         .tappable
@@ -175,7 +183,23 @@
 
                 .talk-message-body
                 {
-                    padding: 0 1em;                 
+                    padding: 0 1em;
+                    user-select: text;
+
+                    pre
+                    {
+                        color: var(--code-normal);
+                        border: 1px solid var(--divider-color);
+                        border-radius: var(--radius-s);
+                        background-color: var(--background-primary);
+                        padding: 0.2em 0.5em;
+
+                        code
+                        {
+                            white-space: pre-wrap;
+                            overflow-wrap: break-word;
+                        }
+                    }
                 }
             }
 
