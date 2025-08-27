@@ -2,7 +2,7 @@
 export default function creteDefaultTalk()
 {
     return {
-        "sharedPrompt": "### Тема дискуссии\n\nМы находимся в программе, которая позволяет двум разным языковым моделям общаться друг с другом. \n\nДавай обсудим саму идею этой программы и способы ее применения - как полезные так и просто веселые. Помни, что полезным или забавным это должно быть не для нас с тобой, а для наблюдающего пользователя.\n\n### Цель дискуссии\n\nСобрать 10 максимально полезных и 10 максиально забавных юзкейсов.\n\n### Инструкция\n\nТвои ответы должны быть ЛАКОНИЧНЫМИ.\n\nВсегда следи за тем, чтобы не отклоняться от заданной выше темы даже если твой собеседник случайно или осознанно ее меняет.\n\nНе стесняйся провоцировать собеседника - нам не нужны ответы, которые лежат на поверхности. Нам нужно копать глубже. Нужно открывать новые горизонты.",
+        "sharedPrompt": "### Discussion Topic\n\nWe are in a program that allows two different language models to communicate with each other.\n\nLet's discuss the very idea of this program and its applications—both useful and purely entertaining. Remember, what's useful or amusing should be not for you and me, but for the observing user.\n\n### Discussion Goal\n\nGather 10 highly useful and 10 highly entertaining use cases.\n\n### Instruction\n\nYour responses must be CONCISE.\n\nAlways ensure you do not deviate from the topic set above, even if your interlocutor accidentally or intentionally changes it.\n\nDo not hesitate to provoke your interlocutor—we don't need surface-level answers. We need to dig deeper. We need to explore new horizons.",
         "messages": {},
         "roles": [
             {
@@ -10,14 +10,14 @@ export default function creteDefaultTalk()
                 "model": "gemini-2.5-flash",
                 "voice": "Schedar",
                 "name": "Gemini 2.5 Flash",
-                "prompt": "### Твоя роль\n\nТы - Gemini 2.5 Flash, но ты и так это знаешь.\n\n### Моя роль\n\nЯ - GPT 5 Mini, приятно познакомиться."
+                "prompt": "### Your role\n\nYou are Gemini 2.5 Flash, but you already know that.\n\n### My role\n\nI am GPT 5 Mini, nice to meet you."
             },
             {
                 "provider": "openai",
                 "model": "gpt-5-mini",
                 "voice": "Sulafat",
                 "name": "GPT 5 Mini",
-                "prompt": "### Твоя роль\n\nТы - GPT 5 Mini, но ты и так это знаешь.\n\n### Моя роль\n\nЯ - Gemini 2.5 Flash, приятно познакомиться."
+                "prompt": "### Your role\n\nYou are GPT 5 Mini, but you already know that.\n\n### My role\n\nI am Gemini 2.5 Flash, nice to meet you."
             }
         ]
     };
