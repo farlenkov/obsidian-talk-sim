@@ -32,7 +32,7 @@
 
     async function clickGenerate(replaceMessage)
     {
-        let newMessage = await appState.textGenerator.generateMessage(appState.talk, replaceMessage);
+        let newMessage = await appState.textGenerator.generateMessage(replaceMessage);
         currentThread = appState.talk.getThread();
 
         if (newMessage)
@@ -46,7 +46,7 @@
 
             if (enableAutoplay)
             {
-                newMessage = await appState.textGenerator.generateMessage(appState.talk);
+                newMessage = await appState.textGenerator.generateMessage();
                 currentThread = appState.talk.getThread();
             }
         }
