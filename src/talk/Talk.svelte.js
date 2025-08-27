@@ -10,8 +10,7 @@ export default class TalkState
         this.modelPrompt1 = $state("");
         this.modelPrompt2 = $state("");
         this.messages = $state({});
-
-        // this.IsSpeaking = $state({});
+        this.roles = $state([]);
 
         this.OnChange = () => {};
     }
@@ -25,6 +24,24 @@ export default class TalkState
         this.modelPrompt1 = json.modelPrompt1 || "";
         this.modelPrompt2 = json.modelPrompt2 || "";
         this.messages = json.messages || {};
+
+        this.roles = json.roles || [
+            {provider: "google", model: "gemini-2.5-flash", voice: "Schedar"},
+            {provider: "google", model: "gemini-2.5-flash", voice: "Leda"}];
+    }
+
+    toString ()
+    {
+        const data = 
+        {
+            sharedPrompt : this.sharedPrompt,
+            modelPrompt1 : this.modelPrompt1,
+            modelPrompt2 : this.modelPrompt2,
+            messages : this.messages,
+            roles : this.roles
+        };
+
+        return JSON.stringify(data, null, '\t');
     }
 
     hasMessages(parentId)
@@ -100,18 +117,5 @@ export default class TalkState
         }
         
         this.OnChange();
-    }
-
-    toString ()
-    {
-        const data = 
-        {
-            sharedPrompt : this.sharedPrompt,
-            modelPrompt1 : this.modelPrompt1,
-            modelPrompt2 : this.modelPrompt2,
-            messages : this.messages
-        };
-
-        return JSON.stringify(data, null, '\t');
     }
 }

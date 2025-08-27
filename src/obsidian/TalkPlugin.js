@@ -7,7 +7,7 @@ export default class TalkPlugin extends Plugin
 {
     async onload() 
     {
-        this.initSettings();
+        settings.Init(this);
         this.registerTalkView();
         this.registerMenuItem();
 
@@ -20,22 +20,6 @@ export default class TalkPlugin extends Plugin
     async onunload() 
     {
         
-    }
-
-    async initSettings()
-    {
-        await settings.Init(this);
-
-        settings.Data.googleModels = 
-        [{
-            "id": "gemini-2.5-flash",
-            "name": "Gemini 2.5 Flash",
-            "desc": "Stable version of Gemini 2.5 Flash, our mid-size multimodal model that supports up to 1 million tokens, released in June of 2025.",
-            "owner": "Google",
-            "context": 1048576,
-            "prompt": -1,
-            "completion": -1
-        }];
     }
 
     async registerTalkView()

@@ -1,7 +1,7 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, AudioLines, Settings } from 'lucide-svelte';
+    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, Volume2, Settings } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import PlayButton from './PlayButton.svelte';
     
@@ -22,8 +22,8 @@
 
     let hasPrompts = $derived(
         appState.talk.sharedPrompt.trim() &&
-        appState.talk.modelPrompt1.trim() &&
-        appState.talk.modelPrompt2.trim());
+        appState.talk.roles[0].prompt.trim() &&
+        appState.talk.roles[1].prompt.trim());
 
     function onChange ()
     {
@@ -32,17 +32,12 @@
 
     async function clickGenerate(replaceMessage)
     {
-        if (!appState.settings.Data.googleKey)
-        {
-            appState.showSettings();
-            return;
-        }
-
-        if (mainTab != TAB_MESSAGES)
-            mainTab = TAB_MESSAGES;
-
         let newMessage = await appState.textGenerator.generateMessage(appState.talk, replaceMessage);
         currentThread = appState.talk.getThread();
+
+        if (newMessage)
+            if (mainTab != TAB_MESSAGES)
+                mainTab = TAB_MESSAGES;
 
         while (enableAutoplay)
         {
@@ -98,6 +93,12 @@
     {
         const audioClip = await appState.voiceGenerator.generateVoice(message);
         appState.voicePlayer.playVoice(audioClip);
+    }
+
+    function getRoleName(i)
+    {
+        const roleIndex = i % 2;
+        return appState.talk.roles[roleIndex].name || "Model " + (roleIndex + 1);
     }
 
 </script>
@@ -180,25 +181,65 @@
 {#if mainTab == TAB_PROMPTS}
     <div class="talk-prompts">
         <div class="prompt-shared">
-            <h4>Shared <dim>System Prompt</dim></h4>
+            <div>
+                <h4>Shared <dim>System Prompt</dim></h4>
+            </div>
+            
             <textarea 
                 bind:value={appState.talk.sharedPrompt}
                 onchange={onChange}>
             </textarea>
         </div>
         <div class="prompt-model1">
-            <h4>Model #1 <dim>Role Prompt</dim></h4>
+            <div class="prompt-model-head">
+                <div>
+                    <h4 aria-label="{appState.talk.roles[0].model}">
+                        {#if appState.talk.roles[0].name}
+                            {appState.talk.roles[0].name}
+                        {:else}
+                            Model #1 <dim>Role Prompt</dim>
+                        {/if}
+                    </h4>
+                </div>
+                <div class="prompt-model-head-right">
+                    <button 
+                        type="button" 
+                        class="clickable-icon" 
+                        aria-label="Open node params" 
+                        onclick={() => appState.roleParams.show(0)}>
+                        <Settings size={16}/> 
+                    </button>
+                </div>
+            </div>
+            
             <textarea 
-                bind:value={appState.talk.modelPrompt1}
-                onchange={onChange}>
-            </textarea>
+                bind:value={appState.talk.roles[0].prompt}
+                onchange={onChange}></textarea>
         </div>
         <div class="prompt-model2">
-            <h4>Model #2 <dim>Role Prompt</dim></h4>
+            <div class="prompt-model-head">
+                <div>
+                    <h4 aria-label="{appState.talk.roles[1].model}">
+                        {#if appState.talk.roles[1].name}
+                            {appState.talk.roles[1].name}
+                        {:else}
+                            Model #2 <dim>Role Prompt</dim>
+                        {/if}
+                    </h4>
+                </div>
+                <div class="prompt-model-head-right">
+                    <button 
+                        type="button" 
+                        class="clickable-icon" 
+                        aria-label="Open node params" 
+                        onclick={() => appState.roleParams.show(1)}>
+                        <Settings size={16}/> 
+                    </button>
+                </div>
+            </div>
             <textarea 
-                bind:value={appState.talk.modelPrompt2}
-                onchange={onChange}>
-            </textarea>
+                bind:value={appState.talk.roles[1].prompt}
+                onchange={onChange}></textarea>
         </div>
     </div>
 {/if}
@@ -209,8 +250,10 @@
             {#each currentThread as message, i}
                 <div class="talk-message">
                     <div class="talk-message-head">
-                        <div class="talk-message-role">
-                            {i % 2 === 0 ? "Model 1" : "Model 2"}
+                        <div 
+                            class="talk-message-role"
+                            aria-label="{message.model}">
+                            {getRoleName(i)}
                         </div>
                         <div class="talk-message-buttons">
 
@@ -251,7 +294,7 @@
                                 label2="Speaking..." 
                                 className="clickable-icon",
                                 onclick={() => clickSpeak(message)}
-                                Icon={AudioLines} />
+                                Icon={Volume2} />
 
                             <PlayButton
                                 inProgress={inProgress}

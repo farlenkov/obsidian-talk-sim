@@ -3,6 +3,11 @@ import Processor from './Processor.svelte.js';
 
 export default class VoiceGenerator extends Processor
 {
+    constructor (appState)
+    {
+        super(appState);
+    }
+
     async generateVoice(message)
     {
         if (!message)
@@ -10,13 +15,11 @@ export default class VoiceGenerator extends Processor
 
         this.inProgress = true;
 
-        const PROVIDER = "google";
-        const MODEL = "gemini-2.5-flash-preview-tts";
-        const voices = aiClient.GetVoices(PROVIDER);
-        const voice = voices[Math.floor(Math.random() * voices.length)];
-        console.log("voice", voice); // Schedar Sulafat Fenrir Callirrhoe
+        const providerId = "google";
+        const modelId = "gemini-2.5-flash-preview-tts";
 
-        const audioClip = await aiClient.Speak(PROVIDER, MODEL, voice, message.text[0]);
+        const role = this.appState.talk.roles[message.role];
+        const audioClip = await aiClient.Speak(providerId, modelId, role.voice, message.text[0]);
         
         this.inProgress = false;
         return audioClip;

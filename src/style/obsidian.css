@@ -1,0 +1,36 @@
+.talk-sim
+{
+    .modal
+    {
+        padding: 0;
+        
+        .modal-header
+        {
+            display: none;
+        }
+    }
+}
+
+.talk-sim.role-params
+{
+    .modal-content
+    {
+        gap: 1em;
+    }
+
+    .modal
+    {
+        width:      var(--modal-width);
+        height:     var(--modal-height);
+
+        max-width:  48em;
+        max-height: 40em;
+    }
+
+    .svelte-llm-model-select
+    {
+        flex: 1;
+        border: 1px solid var(--divider-color);
+        border-radius: var(--modal-radius);
+    }
+}
