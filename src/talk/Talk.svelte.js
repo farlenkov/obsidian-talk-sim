@@ -2,6 +2,7 @@ import aiClient from '$lib/svelte-llm/models/AiClient.svelte.js';
 
 export default class TalkState
 {
+    FileVersion = 1;
     VariantNum = {};
 
     constructor(file)
@@ -20,6 +21,9 @@ export default class TalkState
         if (typeof json === 'string')
             json = JSON.parse(json);
 
+        if (json.version !== this.FileVersion)
+            this.upgrade(json);
+
         this.sharedPrompt = json.sharedPrompt || "";
         this.modelPrompt1 = json.modelPrompt1 || "";
         this.modelPrompt2 = json.modelPrompt2 || "";
@@ -30,10 +34,40 @@ export default class TalkState
             {provider: "google", model: "gemini-2.5-flash", voice: "Leda"}];
     }
 
+    upgrade (json)
+    {
+        if (!json.version)
+        {
+            for (let parentId in json.messages)
+            {
+                const messagesByParent =  json.messages[parentId];
+
+                for (let i = 0; i < messagesByParent.length; i++)
+                {
+                    const message = messagesByParent[i];
+                    const text = message.text;
+
+                    if (text.length > 1)
+                    {
+                        message.text = text[1];
+                        message.think = text[0];
+                    }
+                    else
+                    {
+                        message.text = text[0];
+                    }
+                }
+            }
+        }
+
+        json.version = this.FileVersion;
+    }
+
     toString ()
     {
         const data = 
         {
+            version : this.FileVersion,
             sharedPrompt : this.sharedPrompt,
             modelPrompt1 : this.modelPrompt1,
             modelPrompt2 : this.modelPrompt2,
@@ -115,7 +149,7 @@ export default class TalkState
         {
             this.messages[newMessage.parentId] = [newMessage];
         }
-        
+
         this.OnChange();
     }
 }

@@ -1,7 +1,7 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, Volume2, Settings } from 'lucide-svelte';
+    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, Volume2, Settings, MessageSquareText, MessageSquareCode } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import PlayButton from './PlayButton.svelte';
     
@@ -10,6 +10,7 @@
 
     const appState = getContext("appState");
 
+    let thinkSwitch = $state({});
     let enableAutoplay = $state(false);
     let mainTab = $state(TAB_PROMPTS);
     let currentThread = $state(appState.talk.getThread());
@@ -75,14 +76,20 @@
         if (message)
         {
             if (navigator.clipboard)
-                navigator.clipboard.writeText(message.text[0]);
+            {
+                const textToCopy = thinkSwitch[message.id] 
+                    ? message.think 
+                    : message.text;
+                    
+                navigator.clipboard.writeText(textToCopy);
+            }
         }
         else
         {
             let threadText = "Read aloud in a warm, welcoming tone\n\n";
 
             for (var i = 0; i < currentThread.length; i++)
-                threadText += `${i % 2 === 0 ? "Speaker 1:" : "Speaker 2:"} ${currentThread[i].text[0]}\n\n`;
+                threadText += `${i % 2 === 0 ? "Speaker 1:" : "Speaker 2:"} ${currentThread[i].text}\n\n`;
 
             if (navigator.clipboard)
                 navigator.clipboard.writeText(threadText);
@@ -257,6 +264,25 @@
                         </div>
                         <div class="talk-message-buttons">
 
+                            {#if message.think}
+                                {#if !thinkSwitch[message.id]}
+                                    <button 
+                                        class="clickable-icon"
+                                        aria-label="Show reasoning"
+                                        onclick={() => thinkSwitch[message.id] = true}>
+                                        <MessageSquareText size={16}/>
+                                    </button>
+                                {:else}
+                                    <button 
+                                        style="color:var(--text-accent)"
+                                        class="clickable-icon"
+                                        aria-label="Show message"
+                                        onclick={() => delete thinkSwitch[message.id]}>
+                                        <MessageSquareCode size={16}/>
+                                    </button>
+                                {/if}
+                            {/if}
+
                             {#if appState.talk.hasVariations(message.parentId)}
                                 <div class="talk-message-variants">
 
@@ -306,8 +332,12 @@
 
                         </div>
                     </div>
-                    <div class="talk-message-body">                        
-                        {@html mdToHtml(message.text[0])}
+                    <div class="talk-message-body">
+                        {#if !thinkSwitch[message.id]}
+                            {@html mdToHtml(message.text)}
+                        {:else}
+                            {@html mdToHtml(message.think)}
+                        {/if}
                     </div>
                 </div>
             {/each}
@@ -333,5 +363,4 @@
 
 <style>
 
-    
 </style>

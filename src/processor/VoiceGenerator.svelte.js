@@ -19,7 +19,7 @@ export default class VoiceGenerator extends Processor
         const modelId = "gemini-2.5-flash-preview-tts";
 
         const role = this.appState.talk.roles[message.role];
-        const audioClip = await aiClient.Speak(providerId, modelId, role.voice, message.text[0]);
+        const audioClip = await aiClient.Speak(providerId, modelId, role.voice, message.text);
         
         this.inProgress = false;
         return audioClip;

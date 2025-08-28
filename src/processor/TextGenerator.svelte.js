@@ -49,7 +49,7 @@ export default class TextGenerator extends Processor
                 messages.push
                 ({ 
                     role : role, 
-                    content : [tempThread[i].text[0]]
+                    content : [tempThread[i].text]
                 });
             }
 
@@ -67,6 +67,16 @@ export default class TextGenerator extends Processor
                 isActive : true
             }
 
+            if (markdowns.length > 1)
+            {
+                newMessage.text = markdowns[1];
+                newMessage.think = markdowns[0];
+            }
+            else
+            {
+                newMessage.text = markdowns[0];
+            }
+
             this.appState.talk.addMessage(newMessage);
             this.inProgress = false;
             return newMessage;
@@ -74,6 +84,7 @@ export default class TextGenerator extends Processor
         catch(ex)
         {
             this.inProgress = false;
+            new Notice(ex);
             throw ex;
         }
     }
