@@ -24,7 +24,7 @@
         height:     var(--modal-height);
 
         max-width:  48em;
-        max-height: 40em;
+        max-height: 46em;
     }
 
     .svelte-llm-model-select
@@ -32,5 +32,32 @@
         flex: 1;
         border: 1px solid var(--divider-color);
         border-radius: var(--modal-radius);
+    }
+
+    .role-name
+    {
+        padding: 1em 1em 0 1em;
+        display: flex;
+        flex-direction: row;
+        gap: 1em;        
+
+        input, select
+        {
+            width: 100%;
+        }
+    }
+
+    .role-name  > *
+    {
+        flex: 1;
+    }
+
+    .role-model
+    {
+        padding: 0 1em 1em 1em;
+        height: 10%;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
     }
 }

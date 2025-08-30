@@ -1,7 +1,7 @@
 <script>
 
     import { getContext } from 'svelte';
-    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, Volume2, Settings, MessageSquareText, MessageSquareCode } from 'lucide-svelte';
+    import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, Volume2, Settings, Lightbulb } from 'lucide-svelte';
     import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import PlayButton from './PlayButton.svelte';
     
@@ -73,9 +73,21 @@
 
     function clickCopy(message)
     {
-        if (message)
+        if (!navigator.clipboard)
+            return;
+
+        if (mainTab == TAB_PROMPTS)
         {
-            if (navigator.clipboard)
+            const textToCopy =
+                `<shared>\n${appState.talk.sharedPrompt}\n</shared>\n\n` +
+                `<role1>\n${appState.talk.roles[0].prompt}\n</role1>\n\n` +
+                `<role2>\n${appState.talk.roles[1].prompt}\n</role2>`;
+
+            navigator.clipboard.writeText(textToCopy);
+        }
+        else
+        {
+            if (message)
             {
                 const textToCopy = thinkSwitch[message.id] 
                     ? message.think 
@@ -83,16 +95,15 @@
                     
                 navigator.clipboard.writeText(textToCopy);
             }
-        }
-        else
-        {
-            let threadText = "Read aloud in a warm, welcoming tone\n\n";
+            else
+            {
+                let threadText = "Read aloud in a warm, welcoming tone\n\n";
 
-            for (var i = 0; i < currentThread.length; i++)
-                threadText += `${i % 2 === 0 ? "Speaker 1:" : "Speaker 2:"} ${currentThread[i].text}\n\n`;
+                for (var i = 0; i < currentThread.length; i++)
+                    threadText += `${i % 2 === 0 ? "Speaker 1:" : "Speaker 2:"} ${currentThread[i].text}\n\n`;
 
-            if (navigator.clipboard)
-                navigator.clipboard.writeText(threadText);
+                navigator.clipboard.writeText(threadText);   
+            }
         }
     }
     
@@ -168,7 +179,7 @@
 
         <button 
             class="clickable-icon"
-            aria-label="Copy all messages"
+            aria-label="{mainTab == TAB_PROMPTS ? "Copy all prompts" : "Copy all messages"}"
             onclick={() => clickCopy()}>
             <Copy size={16}/>
         </button>
@@ -197,57 +208,34 @@
                 onchange={onChange}>
             </textarea>
         </div>
-        <div class="prompt-model1">
-            <div class="prompt-model-head">
-                <div>
-                    <h4 aria-label="{appState.talk.roles[0].model}">
-                        {#if appState.talk.roles[0].name}
-                            {appState.talk.roles[0].name}
-                        {:else}
-                            Model #1 <dim>Role Prompt</dim>
-                        {/if}
-                    </h4>
+        {#each appState.talk.roles as role, roleIndex}
+            <div class="prompt-model">
+                <div class="prompt-model-head">
+                    <div>
+                        <h4 aria-label="{role.model}">
+                            {#if role.name}
+                                {role.name}
+                            {:else}
+                                Model #{roleIndex + 1} <dim>Role Prompt</dim>
+                            {/if}
+                        </h4>
+                    </div>
+                    <div class="prompt-model-head-right">
+                        <button 
+                            type="button" 
+                            class="clickable-icon" 
+                            aria-label="Open node params" 
+                            onclick={() => appState.roleParams.show(role)}>
+                            <Settings size={16}/> 
+                        </button>
+                    </div>
                 </div>
-                <div class="prompt-model-head-right">
-                    <button 
-                        type="button" 
-                        class="clickable-icon" 
-                        aria-label="Open node params" 
-                        onclick={() => appState.roleParams.show(0)}>
-                        <Settings size={16}/> 
-                    </button>
-                </div>
+                
+                <textarea 
+                    bind:value={role.prompt}
+                    onchange={onChange}></textarea>
             </div>
-            
-            <textarea 
-                bind:value={appState.talk.roles[0].prompt}
-                onchange={onChange}></textarea>
-        </div>
-        <div class="prompt-model2">
-            <div class="prompt-model-head">
-                <div>
-                    <h4 aria-label="{appState.talk.roles[1].model}">
-                        {#if appState.talk.roles[1].name}
-                            {appState.talk.roles[1].name}
-                        {:else}
-                            Model #2 <dim>Role Prompt</dim>
-                        {/if}
-                    </h4>
-                </div>
-                <div class="prompt-model-head-right">
-                    <button 
-                        type="button" 
-                        class="clickable-icon" 
-                        aria-label="Open node params" 
-                        onclick={() => appState.roleParams.show(1)}>
-                        <Settings size={16}/> 
-                    </button>
-                </div>
-            </div>
-            <textarea 
-                bind:value={appState.talk.roles[1].prompt}
-                onchange={onChange}></textarea>
-        </div>
+        {/each}
     </div>
 {/if}
 
@@ -263,25 +251,6 @@
                             {getRoleName(i)}
                         </div>
                         <div class="talk-message-buttons">
-
-                            {#if message.think}
-                                {#if !thinkSwitch[message.id]}
-                                    <button 
-                                        class="clickable-icon"
-                                        aria-label="Show reasoning"
-                                        onclick={() => thinkSwitch[message.id] = true}>
-                                        <MessageSquareText size={16}/>
-                                    </button>
-                                {:else}
-                                    <button 
-                                        style="color:var(--text-accent)"
-                                        class="clickable-icon"
-                                        aria-label="Show message"
-                                        onclick={() => delete thinkSwitch[message.id]}>
-                                        <MessageSquareCode size={16}/>
-                                    </button>
-                                {/if}
-                            {/if}
 
                             {#if appState.talk.hasVariations(message.parentId)}
                                 <div class="talk-message-variants">
@@ -305,6 +274,25 @@
                                     </button>
 
                                 </div>
+                            {/if}
+
+                            {#if message.think}
+                                {#if !thinkSwitch[message.id]}
+                                    <button 
+                                        class="clickable-icon"
+                                        aria-label="Show reasoning"
+                                        onclick={() => thinkSwitch[message.id] = true}>
+                                        <Lightbulb size={16}/>
+                                    </button>
+                                {:else}
+                                    <button 
+                                        style="color:var(--text-accent)"
+                                        class="clickable-icon"
+                                        aria-label="Show message"
+                                        onclick={() => delete thinkSwitch[message.id]}>
+                                        <Lightbulb size={16}/>
+                                    </button>
+                                {/if}
                             {/if}
 
                             <button 

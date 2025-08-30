@@ -8,11 +8,11 @@ export default class RoleParams
         this.appState = appState;
     }
 
-    show (roleKey) 
+    show (role) 
     {
-        this.role = this.appState.talk.roles[roleKey];        
-        this.appState.modelSelectState.ModelID = this.role.model;
-        this.appState.modelSelectState.ProviderID = this.role.provider;
+        this.role = role;
+        this.appState.modelSelectState.ModelID = role.model;
+        this.appState.modelSelectState.ProviderID = role.provider;
 
         new GenericModal(
             this.appState, 

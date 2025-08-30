@@ -55,35 +55,10 @@
     </div>
     <ModelSelect
         onModelSelected={onModelSelected}
-        onShowSettings={appState.showSettings}
+        onShowSettings={() => appState.showSettings()}
         modelSelectState={appState.modelSelectState} />
 </div>
 
 <style>
-    .role-name
-    {
-        padding: 1em 1em 0 1em;
-        display: flex;
-        flex-direction: row;
-        gap: 1em;        
-
-        input, select
-        {
-            width: 100%;
-        }
-    }
-
-    .role-name  > *
-    {
-        flex: 1;
-    }
-
-    .role-model
-    {
-        padding: 0 1em 1em 1em;
-        height: 10%;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
+    
 </style>
