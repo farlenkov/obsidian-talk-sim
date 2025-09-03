@@ -113,10 +113,11 @@
         appState.voicePlayer.playVoice(audioClip);
     }
 
-    function getRoleName(i)
+    function getRoleName(message)
     {
-        const roleIndex = i % 2;
-        return appState.talk.roles[roleIndex].name || "Model " + (roleIndex + 1);
+        const role = appState.talk.roles[message.role];
+        return role.name || (message.role == 0 ? "<span style='font-size:0.6em'>➀</span> " : "<span style='font-size:0.6em'>➁</span> ") + message.model; 
+        // https://www.w3schools.com/charsets/ref_utf_dingbats.asp
     }
 
 </script>
@@ -225,7 +226,7 @@
                             type="button" 
                             class="clickable-icon" 
                             aria-label="Open node params" 
-                            onclick={() => appState.roleParams.show(role)}>
+                            onclick={() => appState.roleParams.show(role, roleIndex)}>
                             <Settings size={16}/> 
                         </button>
                     </div>
@@ -248,7 +249,7 @@
                         <div 
                             class="talk-message-role"
                             aria-label="{message.model}">
-                            {getRoleName(i)}
+                            {@html getRoleName(message)}
                         </div>
                         <div class="talk-message-buttons">
 

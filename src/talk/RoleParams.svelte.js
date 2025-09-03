@@ -8,9 +8,10 @@ export default class RoleParams
         this.appState = appState;
     }
 
-    show (role) 
+    show (role, roleIndex) 
     {
         this.role = role;
+        this.roleIndex = roleIndex;
         this.appState.modelSelectState.ModelID = role.model;
         this.appState.modelSelectState.ProviderID = role.provider;
 

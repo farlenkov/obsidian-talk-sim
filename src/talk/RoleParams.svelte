@@ -27,7 +27,7 @@
         </div>
         <input 
             type="text"
-            placeholder="Role name for Model #1"
+            placeholder="Role name for Model #{appState.roleParams.roleIndex + 1}"
             bind:value={appState.roleParams.role.name}
             onchange={onChange} />
     </div>
