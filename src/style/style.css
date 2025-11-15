@@ -19,6 +19,11 @@
         filter: brightness(0.5);
     }
 
+    .display-contents
+    {
+        display: contents;
+    }
+
     .main-menu
     {
         display: flex;

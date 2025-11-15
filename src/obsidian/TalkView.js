@@ -13,6 +13,7 @@ export default class TalkView extends TextFileView
         this.appState = new AppState();
         this.appState.talk.OnChange = () => this.requestSave();
         this.appState.app = plugin.app;
+        this.appState.view = this;
     }
 
     getViewType() 

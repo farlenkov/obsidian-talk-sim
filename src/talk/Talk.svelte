@@ -2,8 +2,8 @@
 
     import { getContext } from 'svelte';
     import { Play, RefreshCcw, ChevronLeft, ChevronRight, SquarePen, MessagesSquare, Copy, Volume2, Settings, Lightbulb } from 'lucide-svelte';
-    import { mdToHtml } from '$lib/svelte-obsidian/src/Markdown.js';
     import PlayButton from './PlayButton.svelte';
+    import Message from './Message.svelte';
     
     const TAB_PROMPTS = "prompts";
     const TAB_MESSAGES = "messages";
@@ -323,9 +323,9 @@
                     </div>
                     <div class="talk-message-body">
                         {#if !thinkSwitch[message.id]}
-                            {@html mdToHtml(message.text)}
+                            <Message markdown={message.text} />
                         {:else}
-                            {@html mdToHtml(message.think)}
+                            <Message markdown={message.think} />
                         {/if}
                     </div>
                 </div>
