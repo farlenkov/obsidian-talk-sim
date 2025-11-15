@@ -1,7 +1,7 @@
 {
   "id": "talk-sim",
   "name": "Talk Simulator",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "minAppVersion": "0.15.0",
   "description": "Make LLMs talk to each other to discuss your topics.",
   "author": "Mike Farlenkov",
