@@ -1,5 +1,3 @@
-import aiClient from '$lib/svelte-llm/models/AiClient.svelte.js';
-
 export default class TalkState
 {
     FileVersion = 1;

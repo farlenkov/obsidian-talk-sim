@@ -44,11 +44,7 @@ export default class TextGenerator extends Processor
                     ? (i % 2 === 0 ? "model" : "user") 
                     : (i % 2 === 0 ? "user" : "model");
 
-                messages.push
-                ({ 
-                    role : role, 
-                    content : [tempThread[i].text]
-                });
+                messages.push({ role : role, content : [tempThread[i].text] });
             }
 
             const modelId = this.appState.talk.roles[roleIndex].model;

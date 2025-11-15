@@ -24,6 +24,11 @@
         display: contents;
     }
 
+    .color-text-accent
+    {
+        color:var(--text-accent)
+    }
+
     .main-menu
     {
         display: flex;
@@ -190,6 +195,11 @@
                         flex-direction: row;
                         align-items: center;
                         gap: 0.4em;
+
+                        .talk-message-role-number
+                        {
+                            font-size:0.6em;
+                        }
                     }
 
                     .talk-message-buttons

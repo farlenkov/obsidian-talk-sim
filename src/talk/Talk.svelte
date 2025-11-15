@@ -116,7 +116,10 @@
     function getRoleName(message)
     {
         const role = appState.talk.roles[message.role];
-        return role.name || (message.role == 0 ? "<span style='font-size:0.6em'>➀</span> " : "<span style='font-size:0.6em'>➁</span> ") + message.model; 
+
+        return role.name || (message.role == 0 
+            ? "<span class='talk-message-role-number'>➀</span> " 
+            : "<span class='talk-message-role-number'>➁</span> ") + message.model; 
         // https://www.w3schools.com/charsets/ref_utf_dingbats.asp
     }
 
@@ -287,8 +290,7 @@
                                     </button>
                                 {:else}
                                     <button 
-                                        style="color:var(--text-accent)"
-                                        class="clickable-icon"
+                                        class="clickable-icon color-text-accent"
                                         aria-label="Show message"
                                         onclick={() => delete thinkSwitch[message.id]}>
                                         <Lightbulb size={16}/>

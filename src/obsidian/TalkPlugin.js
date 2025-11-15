@@ -13,7 +13,7 @@ export default class TalkPlugin extends Plugin
 
         this.addRibbonIcon(
             'messages-square', 
-            'Create new Talk Sim', 
+            'Create new talk sim', 
             () => { this.CreateNewTalk("/"); });
     }
 
@@ -43,7 +43,7 @@ export default class TalkPlugin extends Plugin
                 { 
                     menu.addItem((item) => 
                     {
-                        item.setTitle('New Talk Sim')
+                        item.setTitle('New talk sim')
                             .setIcon('messages-square') 
                             .onClick(async () =>
                             {
