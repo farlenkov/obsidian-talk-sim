@@ -48,7 +48,12 @@ export default class TalkView extends TextFileView
         return this.appState.talk.toString();
     }
 
-    clear ()
+    async onClose ()
+    {
+        this.clear();
+    }
+
+    clear()
     {
         if (this.talkView)
         {

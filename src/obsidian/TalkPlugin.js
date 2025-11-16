@@ -2,6 +2,7 @@ import { Plugin } from 'obsidian';
 import TalkView from './TalkView.js';
 import creteDefaultTalk from '$lib/talk/Talk.default.js';
 import settings from '$lib/svelte-llm/settings/Settings.svelte.js';
+import { createNewFile } from '$lib/svelte-obsidian/src/CreateNewFile.js';
 
 export default class TalkPlugin extends Plugin 
 {
@@ -58,23 +59,14 @@ export default class TalkPlugin extends Plugin
 
     async CreateNewTalk(folderPath)
     {
-        let counter = 0;
-        let baseName = "Talk Sim"
-        let filePath = `${folderPath}/${baseName}.talk-sim`;
-        
-        while (await this.app.vault.adapter.exists(filePath)) 
-        {
-            counter++;
-            filePath = `${folderPath}/${baseName} ${counter}.talk-sim`;
-        }
-
         const talk = creteDefaultTalk();
+        const talkJson = JSON.stringify(talk, null, '\t');
 
-        const file = await this.app.vault.create(
-            filePath, 
-            JSON.stringify(talk, null, '\t'));
-
-        const leaf = this.app.workspace.getLeaf();
-        await leaf.openFile(file);
+        await createNewFile(
+            this.app, 
+            folderPath,
+            "Talk Sim",
+            "talk-sim",
+            talkJson);
     }
 }
