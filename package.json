@@ -11,13 +11,13 @@
 		"build": "node esbuild.config.mjs production"
 	},
 	"devDependencies": {
-		"@types/node": "^24.2.1",
+		"@types/node": "^25.3.0",
 		"builtin-modules": "5.0.0",
-		"esbuild": "0.25.9",
-		"esbuild-svelte": "^0.9.3",
-		"lucide-svelte": "^0.539.0",
+		"esbuild": "0.27.3",
+		"esbuild-svelte": "^0.9.4",
+		"lucide-svelte": "^0.575.0",
 		"obsidian": "latest",
 		"showdown": "^2.1.0",
-		"svelte": "^5.38.1"
+		"svelte": "^5.53.2"
 	}
 }
