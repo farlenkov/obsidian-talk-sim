@@ -1,3 +1,5 @@
+> This repository is now archived. All features from this plugin have been incorporated into [Canvas LLM](https://github.com/farlenkov/obsidian-canvas-llm). Please use that instead.
+
 # Talk Simulator
 
 Have you ever felt like you weren’t smart enough to ask the right question to an LLM about a topic you’re interested in? Let’s change that approach: instead, let’s have smart LLMs talk to each other about your topics.
